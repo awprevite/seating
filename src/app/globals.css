@@ -15,3 +15,83 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  flex-wrap: wrap;
+}
+
+.table-container {
+  position: relative;
+  width: 300px;
+  height: 150px;
+  background-color: #d3d3d3;
+  border-radius: 50%;
+  border: 2px solid #555;
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.table {
+  position: relative;
+  width: 300px;
+  height: 150px;
+  border-radius: 50%;
+  background-color: #d3d3d3;
+  border: 2px solid #555;
+}
+
+.waitlist-container {
+  flex-grow: 1;
+  max-width: 500px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow-y: auto;
+  height: 300px;
+}
+
+.waitlist-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.waitlist-table th, .waitlist-table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+.waitlist-table th {
+  text-align: left;
+  background-color: #f0f0f0;
+}
+
+.waitlist-table button {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.name {
+  position: absolute;
+  text-align: center;
+}
+
+.name button {
+  all: unset;
+  display: block;
+  padding: 5px 10px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.name button:hover {
+  background-color: #555;
+  color: white;
+}
