@@ -25,12 +25,15 @@ body {
   background-color: var(--background);
   border-radius: 50%;
   border: 2px solid #555;
-  margin-right: 20px;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  left: 20px;
 }
 
 .table {
   position: relative;
+  margin: 0 auto;
   width: 500px;
   height: 250px;
   border-radius: 50%;
@@ -40,13 +43,14 @@ body {
 
 .waitlist-container {
   flex-grow: 1;
-  max-width: 500px;
+  max-width: 200px;
   padding: 20px;
   background-color: var(--background);
   border: 1px solid #ddd;
   border-radius: 5px;
   overflow-y: auto;
   height: 300px;
+  left: 40px;
 }
 
 .waitlist-table {
@@ -91,4 +95,85 @@ body {
 .name button:hover {
   background-color: #555;
   color: white;
+}
+
+/* ---------------- Login/ Create Account Popup Styles ---------------- */
+
+/*covers existing screen*/
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/*popup*/
+.login-modal {
+  background: var(--background);
+  padding: 30px;
+  border-radius: 10px;
+  border: 2px solid white;
+  width: 450px; 
+  max-width: 90%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+}
+
+.login-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.login-label {
+  color: white;
+}
+
+.login-input {
+  color: black;
+}
+
+.login-button-container {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.login-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #ffffff;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: green;
+}
+
+.close-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #ffffff;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.close-button:hover {
+  background-color: red;
 }
