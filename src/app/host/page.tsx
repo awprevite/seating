@@ -3,225 +3,144 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 export default function TableManager() {
-
-  const[totalSeats, setTotalSeats] = useState<number>(0);
-  const[premiumSeats, setPremiumSeats] = useState<number>(0);
-  const[hostId, setHostId] = useState<number>(0);
-  const [selectedTable, setSelectedTable] = useState<number | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [totalSeats, setTotalSeats] = useState<number>(0);
+  const [premiumSeats, setPremiumSeats] = useState<number>(0);
+  const [hostId, setHostId] = useState<number | null>(null);
   const [hostKey, setHostKey] = useState<string>("");
-  const [submit, setSubmit] = useState<boolean>(false);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedTable, setSelectedTable] = useState<number | null>(null);
+  const [tables, setTables] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const urlCreateTable = "https://j08uqzcsf4.execute-api.us-east-1.amazonaws.com/main/createTable";
+  const urlGetHostTableInfo = "https://j08uqzcsf4.execute-api.us-east-1.amazonaws.com/main/getHostTableInfo";
 
   const handleCreateTable = async () => {
-
     try {
+      setLoading(true);
       const response = await axios.post(urlCreateTable, {
         host_id: hostId,
         total_seats: totalSeats,
         premium_seats: premiumSeats,
       });
-
-      const { statusCode, body } = response.data;
-
-      console.log(response.data);
-
-      if (statusCode === 200) {
-        alert("Successfully Created Table and Seats!");
-
-      } else {
-        alert("Failed to create table and seats");
-      }
+      const { statusCode } = response.data;
+      alert(statusCode === 200 ? "Successfully Created Table and Seats!" : "Failed to create table and seats");
     } catch (error) {
-        alert("An unexpected error occurred. Please try again later.");
+      alert("An unexpected error occurred. Please try again later.");
+    } finally {
+      setLoading(false);
+      getHostTableInfo();
     }
   };
 
-  const tables = [
-    { id: 1, name: 'Table 1' },
-    { id: 2, name: 'Table 2' },
-    { id: 3, name: 'Table 3' },
-  ];
-  const names = ['Alice', 'Bob', 'Charlie', 'Diana'];
-  const [waitlist, setWaitlist] = useState<string[]>([]);
-
-  const handleTableSelect = (id: number) => {
-    setSelectedTable(id);
+  const getHostTableInfo = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.post(urlGetHostTableInfo, { host_id: hostId });
+      const { statusCode, body } = response.data;
+      if (statusCode === 200) {
+        setTables(body);
+      } else {
+        alert("Failed to retrieve table information");
+      }
+    } catch (error) {
+      alert("An unexpected error occurred. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const addNameToWaitlist = (name: string) => {
-    setWaitlist((prev) => [...prev, name]);
-  };
+  const handleTableSelect = (id: number) => setSelectedTable(id);
 
-  const handleNameClick = (name: string) => {
-    console.log(`Name clicked: ${name}`);
-  };
+  const renderTableList = () => (
+    <div>
+      <h1>Select a Table</h1>
+      <ul>
+        {tables.map((table) => (
+          <li key={table.table_id}>
+            <button onClick={() => handleTableSelect(table.table_id)}>
+              {table.total_seats} seats
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedDate(e.target.value);
-  };
+  const renderTableDetails = () => {
+    const table = tables.find((t) => t.table_id === selectedTable);
+    if (!table) return null;
 
-  const handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setHostKey(e.target.value);
-  };
-
-  const handleKeySubmit = () => {
-    setSubmit(true);
-  }
-
-  const handleKeyClear = () => {
-    setSubmit (false);
-    setHostKey("");
-  }
-
-  const handleDateClear = () => {
-    setSelectedDate("");
-  }
-
-  const handleTotalSeatsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setTotalSeats(Number(e.target.value));
-  };
-  
-  const handlePremiumSeatsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPremiumSeats(Number(e.target.value));
-  };  
-
-  const handleHostIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    setHostId(value);
-  }
-
-  if (selectedDate === ""){
-    return(
-      <div>
-        <input type="text" value={hostKey} onChange={handleKeyChange}></input>
-        <button onClick={handleKeySubmit}>Submit</button>
-        <button onClick={handleKeyClear}>Clear</button>
-        <div className="date-picker-container">
-          <label htmlFor="select-date">Select Date:</label>
-          <input 
-            type="date" 
-            id="select-date" 
-            value={selectedDate} 
-            onChange={handleDateChange} 
-          />
-        </div>
-        <button onClick={handleDateClear}>Clear</button>
-        <label>Total Seats</label>
-        <select onChange={(e) => handleTotalSeatsChange(e)} value={totalSeats}>
-          {[...Array(8)].map((_, index) => (
-            <option key={index} value={index + 2}>
-              {index + 2}
-            </option>
-          ))}
-        </select>
-
-        <label>Premium Seats</label>
-        <select
-          onChange={(e) => handlePremiumSeatsChange(e)}
-          value={premiumSeats}
-          disabled={totalSeats === 0}
-        >
-          {[...Array(totalSeats + 1)].map((_, index) => (
-            <option key={index} value={index}>
-              {index}
-            </option>
-          ))}
-        </select>
-
-        <label>Your Host Id</label>
-        <input
-          className="host-id"
-          type="text"
-          placeholder="Your Host Id"
-          id="host-id"
-          name="host-id"
-          required
-          onChange={handleHostIdChange}
-        />
-
-        <button onClick={handleCreateTable}>Create Table</button>
-
-
-      </div>
-    );
-  }
-
-  if (selectedTable === null) {
     return (
       <div>
-          <input type="text" value={hostKey} onChange={handleKeyChange}></input>
-          <button onClick={handleKeySubmit}>Submit</button>
-          <button onClick={handleKeyClear}>Clear</button>
-          <div className="date-picker-container">
-            <label htmlFor="select-date">Select Date:</label>
-            <input 
-              type="date" 
-              id="select-date" 
-              value={selectedDate} 
-              onChange={handleDateChange} 
-            />
-          </div>
-          <button onClick={handleDateClear}>Clear</button>
-        <div className="table-list">
-          <h1>Select a Table</h1>
-          <ul>
-            {tables.map((table) => (
-              <li key={table.id}>
-                <button onClick={() => handleTableSelect(table.id)}>{table.name}</button>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <button onClick={() => setSelectedTable(null)}>Back to Table List</button>
+        <h1>Details for {table.table_id}</h1>
+        <p>Total Seats: {table.total_seats}</p>
+        <p>Premium Seats: {table.premium_seats}</p>
+        <h2>Seats</h2>
+        <ul>
+          {table.seats.map((seat: any) => (
+            <li key={seat.seat_id}>
+              Seat ID: {seat.seat_id}, Premium: {seat.premium}, Occupied: {seat.player_id}
+            </li>
+          ))}
+        </ul>
       </div>
     );
-  }
+  };
 
-  // Table Details Screen
+  const handleSetHostId = () => {
+    const numericHostId = parseInt(hostKey);
+    if (!isNaN(numericHostId)) {
+      setHostId(numericHostId);
+    } else {
+      alert("Please enter a valid numeric Host ID.");
+    }
+  };
+
+  const renderLoading = () => <p>Loading...</p>;
+
+  useEffect(() => {
+    if (hostId) {
+      getHostTableInfo();
+    }
+  }, [hostId]);
+
   return (
-    <div className="container">
-      <button onClick={() => setSelectedTable(null)}>Back to Table List</button>
-      <h1>Details for {tables.find((table) => table.id === selectedTable)?.name}</h1>
-      
-      <div className="table-container">
-        <div className="table">
-          {names.map((name, index) => {
-            const angle = (360 / names.length) * index;
-            const x = Math.ceil(250 + 250 * Math.cos((angle * Math.PI) / 180));
-            const y = Math.ceil(125 + 125 * Math.sin((angle * Math.PI) / 180));
-
-            return (
-              <div
-                key={index}
-                className={`name position-${index + 1}`}
-                style={{
-                  position: 'absolute',
-                  left: `${x}px`,
-                  top: `${y}px`,
-                  transform: `translate(-50%, -50%)`,
-                }}
-              >
-                <button onClick={() => handleNameClick(name)}>{name}</button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="waitlist-container">
-        <h2>Waitlist</h2>
-        <button onClick={() => addNameToWaitlist('New Name')}>Add Name</button>
-        <table className="waitlist-table">
-          <tbody>
-            {waitlist.map((name, index) => (
-              <tr key={index}>
-                <td>{name}</td>
-              </tr>
+    <div>
+      <label>Enter Host ID</label>
+      <input type="string" value={hostKey} onChange={(e) => setHostKey(e.target.value)} />
+      <button onClick={handleSetHostId}>Set Host ID</button>
+      {hostId && (
+        <div>
+          <label>Total Seats</label>
+          <select onChange={(e) => setTotalSeats(Number(e.target.value))} value={totalSeats}>
+            {[...Array(8)].map((_, index) => (
+              <option key={index} value={index + 2}>
+                {index + 2}
+              </option>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </select>
+          <label>Premium Seats</label>
+          <select
+            onChange={(e) => setPremiumSeats(Number(e.target.value))}
+            value={premiumSeats}
+            disabled={totalSeats === 0}
+          >
+            {[...Array(totalSeats + 1)].map((_, index) => (
+              <option key={index} value={index}>
+                {index}
+              </option>
+            ))}
+          </select>
+          <button onClick={handleCreateTable} disabled={loading}>
+            {loading ? "Creating..." : "Create Table"}
+          </button>
+          {loading && renderLoading()}
+          {selectedDate === "" && selectedTable === null && renderTableList()}
+          {selectedTable !== null && renderTableDetails()}
+        </div>
+      )}
     </div>
   );
 }
