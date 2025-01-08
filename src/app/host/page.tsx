@@ -14,6 +14,7 @@ export default function TableManager() {
 
   const urlCreateTable = "https://j08uqzcsf4.execute-api.us-east-1.amazonaws.com/main/createTable";
   const urlGetHostTableInfo = "https://j08uqzcsf4.execute-api.us-east-1.amazonaws.com/main/getHostTableInfo";
+  const urlDeleteTable = "https://j08uqzcsf4.execute-api.us-east-1.amazonaws.com/main/deleteTable";
 
   const handleCreateTable = async () => {
     try {
@@ -25,6 +26,26 @@ export default function TableManager() {
       });
       const { statusCode } = response.data;
       alert(statusCode === 200 ? "Successfully Created Table and Seats!" : "Failed to create table and seats");
+    } catch (error) {
+      alert("An unexpected error occurred. Please try again later.");
+    } finally {
+      setLoading(false);
+      getHostTableInfo();
+    }
+  };
+
+  const handleDeleteTable = async () => {
+    try {
+      console.log(selectedTable);
+      setLoading(true);
+      const response = await axios.post(urlDeleteTable, {
+        table_id: selectedTable
+      });
+      const { statusCode } = response.data;
+      if(statusCode === 200){
+        setSelectedTable(null);
+      }
+      alert(statusCode === 200 ? "Deleted table" : "Failed to delete table");
     } catch (error) {
       alert("An unexpected error occurred. Please try again later.");
     } finally {
@@ -85,6 +106,7 @@ export default function TableManager() {
             </li>
           ))}
         </ul>
+        <button onClick={handleDeleteTable}>Delete Table</button>
       </div>
     );
   };
