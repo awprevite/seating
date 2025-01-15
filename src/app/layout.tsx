@@ -14,9 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <header>
-          <h1>Seating Arrangement App</h1>
-        </header>
+        <header></header>
         <main>{children}</main>
       </body>
     </html>

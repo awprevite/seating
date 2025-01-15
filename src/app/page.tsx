@@ -5,33 +5,26 @@ import axios from 'axios';
 
 export default function App() {
 
-  // Page open variables
+  // View variables
   const[homeOpen, setHomeOpen] = useState(true);
   const[loginOpen, setLoginOpen] = useState(false);
   const[createOpen, setCreateOpen] = useState(false);
   const[hostOpen, setHostOpen] = useState(false);
   const[playerOpen, setPlayerOpen] = useState(false);
   
-  // Login variables
-  const[selectedRole, setSelectedRole] = useState<string>("player");
+  // Variables
+  const[role, setRole] = useState<string>("player");
   const[username, setUsername] = useState<string>("");
   const[password, setPassword] = useState<string>("");
   const[confirmPassword, setConfirmPassword] = useState<string>("");
-
-  // Host variables
-  const [totalSeats, setTotalSeats] = useState<number>(2);
-  const [hostKey, setHostKey] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedTime, setSelectedTime] = useState<string>("");
-  const [selectedGame, setSelectedGame] = useState<number | null>(null);
-  const [games, setGames] = useState<any[]>([]);
-  const [createGameOpen, setCreateGameOpen] = useState(false);
-
-  // Player variables
-  const [selectedGamePlayer, setSelectedGamePlayer] = useState<number | null>(null);
-  const [selectedDatePlayer, setSelectedDatePlayer] = useState<string>("");
-  const [hostKeyPlayer, setHostKeyPlayer] = useState<string>("");
-  const [usernames, setUsernames] = useState<string[]>([]);
+  const[totalSeats, setTotalSeats] = useState<number>(2);
+  const[hostKey, setHostKey] = useState<string>("");
+  const[date, setDate] = useState<string>("");
+  const[time, setTime] = useState<string>("");
+  const[game, setGame] = useState<number | null>(null);
+  const[games, setGames] = useState<any[]>([]);
+  const[createGameOpen, setCreateGameOpen] = useState(false);
+  const[usernames, setUsernames] = useState<string[]>([]);
 
   // API endpoints
   const urlLogin = "https://j08uqzcsf4.execute-api.us-east-1.amazonaws.com/main/login";
@@ -46,13 +39,62 @@ export default function App() {
   const urlDeleteAccount = "https://j08uqzcsf4.execute-api.us-east-1.amazonaws.com/main/deleteAccount";
 
   // API functions
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post(urlLogin, {
+        role: role,
+        username: username,
+        password: password,
+      });
+      const { statusCode, body } = response.data;
+      if (statusCode === 200) {
+        setLoginOpen(false);
+        setHomeOpen(false);
+        if(role === "player"){
+          setPlayerOpen(true);
+        }else{
+          setHostOpen(true);
+          getHostGameInfo();
+        }
+      } else {
+        alert("Login failed"); // style a better notification
+      }
+    } catch (error) {
+        alert("An unexpected error occurred. Please try again later.");
+    }
+  };
+
+  const handleCreateAccount = async () => {
+    try {
+      if(password != confirmPassword){
+        alert("passwords do not match")
+        return
+      }
+      const response = await axios.post(urlCreateAccount, {
+        role: role,
+        username: username,
+        password: password,
+      });
+      const { statusCode, body } = response.data;
+      if (statusCode === 200) {
+        alert("Account sreated successful! You can now log in.");
+        setLoginOpen(true);
+        setCreateOpen(false);
+      } else {
+        alert("Create Account failed");
+      }
+    } catch (error) {
+        alert("An unexpected error occurred. Please try again later.");
+    }
+  };
+
   const handleCreateGame = async () => {
     try {
-      if(totalSeats === 0 || selectedDate === "" || selectedTime === ""){
+      if(totalSeats === 0 || date === "" || time === ""){
         alert("Fill out all fields before creating")
         return
       }
-      const startTimeDate = selectedDate + " " + selectedTime + ":00:00";
+      const startTimeDate = date + " " + time + ":00:00";
       const response = await axios.post(urlCreateTable, {
         username: username,
         password: password,
@@ -74,11 +116,9 @@ export default function App() {
     try {
       const response = await axios.post(urlJoinGame, {
         username: username,
-        game_id: selectedGame,
+        game_id: game,
       });
-
       const { statusCode, body } = response.data;
-
       if (statusCode === 200) {
         alert("Joined");
       } else {
@@ -87,19 +127,16 @@ export default function App() {
     } catch (error) {
         alert("An unexpected error occurred. Please try again later.");
     }
-
     getGameInfo();
   };
 
   const handleDeleteAccount = async () => {
     try {
       const response = await axios.post(urlDeleteAccount, {
-        role: selectedRole,
+        role: role,
         username: username,
       });
-
       const { statusCode, body } = response.data;
-
       if (statusCode === 200) {
         alert("Deleted");
       } else {
@@ -108,7 +145,6 @@ export default function App() {
     } catch (error) {
         alert("An unexpected error occurred. Please try again later.");
     }
-
     setHomeOpen(true);
     setHostOpen(false);
     setPlayerOpen(false);
@@ -118,11 +154,9 @@ export default function App() {
     try {
       const response = await axios.post(urlLeaveGame, {
         username: username,
-        game_id: selectedGame,
+        game_id: game,
       });
-
       const { statusCode, body } = response.data;
-
       if (statusCode === 200) {
         alert("Left");
       } else {
@@ -131,7 +165,6 @@ export default function App() {
     } catch (error) {
         alert("An unexpected error occurred. Please try again later.");
     }
-
     getGameInfo();
   };
 
@@ -139,7 +172,7 @@ export default function App() {
     try {
       const response = await axios.post(urlSearchGames, { 
         host_key: hostKey, 
-        start_time_date: selectedDate
+        start_time_date: date
       });
       const { statusCode, body } = response.data;
       if (statusCode === 200) {
@@ -155,11 +188,11 @@ export default function App() {
   const handleDeleteGame = async () => {
     try {
       const response = await axios.post(urlDeleteTable, {
-        game_id: selectedGame
+        game_id: game
       });
       const { statusCode } = response.data;
       if(statusCode === 200){
-        setSelectedGame(null);
+        setGame(null);
       }
       alert(statusCode === 200 ? "Deleted game" : "Failed to delete game");
     } catch (error) {
@@ -190,10 +223,9 @@ export default function App() {
     setUsernames([]);
     try {
       const response = await axios.post(urlGetGameInfo, { 
-        game_id: selectedGame
+        game_id: game
       });
-      const { statusCode, game, seat } = response.data;
-  
+      const { statusCode, game_id, seat } = response.data;
       if (statusCode === 200) {
         (seat as { player_username: string }[]).forEach((seatItem) => {
           setUsernames((prevUsernames) => [...prevUsernames, seatItem.player_username]);
@@ -207,73 +239,9 @@ export default function App() {
     }
   };
 
-  const handleLogin = async () => {
-    try {
-      const response = await axios.post(urlLogin, {
-        role: selectedRole,
-        username: username,
-        password: password,
-      });
-
-      const { statusCode, body } = response.data;
-      const { id, returnedUsername, returnedPassword } = body;
-      console.log("ID:", id);
-      console.log("Username:", returnedUsername);
-      console.log("Password:", returnedPassword);
-      console.log(statusCode);
-
-      if (statusCode === 200) {
-        alert("Login successful!");
-        setLoginOpen(false);
-        setHomeOpen(false);
-        if(selectedRole === "player"){
-          setPlayerOpen(true);
-        }else{
-          setHostOpen(true);
-          getHostGameInfo();
-        }
-      } else {
-        alert("Login failed");
-      }
-    } catch (error) {
-        alert("An unexpected error occurred. Please try again later.");
-    }
-  };
-
-  const handleCreateAccount = async () => {
-    try {
-      if(password != confirmPassword){
-        alert("passwords do not match")
-        return
-      }
-
-      const response = await axios.post(urlCreateAccount, {
-        role: selectedRole,
-        username: username,
-        password: password,
-      });
-
-      const { statusCode, body } = response.data;
-      const { id, returnedUsername, returnedPassword } = body;
-      console.log("ID:", id);
-      console.log("username:", returnedUsername);
-      console.log("Password:", returnedPassword);
-
-      if (statusCode === 200) {
-        alert("Account sreated successful! You can now log in.");
-        setLoginOpen(true);
-        setCreateOpen(false);
-      } else {
-        alert("Create Account failed");
-      }
-    } catch (error) {
-        alert("An unexpected error occurred. Please try again later.");
-    }
-  };
-
   // Input handlers
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedDate(e.target.value);
+    setDate(e.target.value);
   };
   const handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHostKey(e.target.value);
@@ -302,23 +270,22 @@ export default function App() {
     setPlayerOpen(false);
     setUsername("");
     setPassword("");
-    setSelectedRole("player");
+    setRole("player");
     setConfirmPassword("");
     setTotalSeats(2);
     setHostKey("");
-    setSelectedDate("");
-    setSelectedTime("");
-    setSelectedGame(null);
+    setDate("");
+    setTime("");
+    setGame(null);
     setGames([]);
   }
 
   // Other functions
-
   useEffect(() => {
-    if (selectedGame !== null && selectedRole === "player") {
+    if (game !== null && role === "player") {
       getGameInfo();
     }
-  }, [selectedGame]);
+  }, [game]);
 
   const renderGameList = () => (
     <div>
@@ -326,7 +293,7 @@ export default function App() {
       <ul>
         {games.map((game) => (
           <li key={game.game_id}>
-            <button onClick={() => setSelectedGame(game.game_id)}>
+            <button onClick={() => setGame(game.game_id)}>
               {game.total_seats} seats
             </button>
           </li>
@@ -336,17 +303,17 @@ export default function App() {
   );
 
   const renderGameDetails = () => {
-    const game = games.find((t) => t.game_id === selectedGame);
-    if (!game) return null;
+    const foundGame = games.find((t) => t.game_id === game);
+    if (!foundGame) return null;
 
     return (
       <div>
-        <button onClick={() => setSelectedGame(null)}>Back to Game List</button>
-        <h1>Details for {game.game_id}</h1>
-        <p>Total Seats: {game.total_seats}</p>
+        <button onClick={() => setGame(null)}>Back to Game List</button>
+        <h1>Details for {foundGame.game_id}</h1>
+        <p>Total Seats: {foundGame.total_seats}</p>
         <h2>Seats</h2>
         <ul>
-          {game.seats.map((seat: any) => (
+          {foundGame.seats.map((seat: any) => (
             <li key={seat.seat_id}>
               Seat Number: {seat.seat_num}, Occupied: {seat.player_username ? seat.player_username : "-"}
             </li>
@@ -365,17 +332,35 @@ export default function App() {
   const homeView = () => {
     return (
       <div>
-        <header>
-          <button onClick={toggleLogin}>Login/Sign Up</button>
-        </header>
+        <div className="home-button-container">
+          <button className="home-button" onClick={toggleLogin}>Login/Sign Up</button>
+        </div>
+        <div className="info-container">
+          <h2>Find a poker game or host your own!</h2>
+        </div>
+        <div className="info-container">
+          <div className="box left-box">
+            <h2>Player</h2>
+            <p>Find public games</p>
+            <p>Register for private games with a key</p>
+          </div>
+          <div className="box right-box">
+            <h2>Host</h2>
+            <p>Create and manage games</p>
+            <p>Customize game settings and monitor players</p>
+          </div>
+        </div>
+        <div className="info-container">
+          <p>This app is only for finding and managing in person poker games</p>
+        </div>
   
         {loginOpen && (
           <div className="modal-overlay">
             <div className="login-modal">
               <h2>Login</h2>
               <div className="login-button-container">
-                <button className={selectedRole === "player" ? "role-button selected" : "role-button"} onClick={() => setSelectedRole("player")}>player</button>
-                <button className={selectedRole === "player" ? "role-button" : "role-button selected"} onClick={() => setSelectedRole("host")}>host</button>
+                <button className={role === "player" ? "role-button selected" : "role-button"} onClick={() => setRole("player")}>player</button>
+                <button className={role === "player" ? "role-button" : "role-button selected"} onClick={() => setRole("host")}>host</button>
                 <button className="close-button" onClick={toggleLogin}>Back</button>
               </div>
               <div className="login-input-container">
@@ -397,8 +382,8 @@ export default function App() {
           <div className="login-modal">
             <h2>Create Account</h2>
             <div className="login-button-container">
-              <button className={selectedRole === "player" ? "role-button selected" : "role-button"} onClick={() => setSelectedRole("player")}>player</button>
-              <button className={selectedRole === "player" ? "role-button" : "role-button selected"} onClick={() => setSelectedRole("host")}>host</button>
+              <button className={role === "player" ? "role-button selected" : "role-button"} onClick={() => setRole("player")}>player</button>
+              <button className={role === "player" ? "role-button" : "role-button selected"} onClick={() => setRole("host")}>host</button>
               <button className="close-button" onClick={() => {toggleLogin(); toggleCreate();}}>Back</button>
             </div>
             <div className="login-input-container">
@@ -432,24 +417,24 @@ export default function App() {
         <label>Filter by Date</label>
         <div className="date-picker-container">
           <label htmlFor="select-date">Select Date:</label>
-          <input type="date" id="select-date" value={selectedDate} onChange={handleDateChange}/>
+          <input type="date" id="select-date" value={date} onChange={handleDateChange}/>
         </div>
-        <button onClick={() => setSelectedDate("")}>Clear</button>
+        <button onClick={() => setDate("")}>Clear</button>
         <button onClick={() => handleSearchGames()}>Search</button>
         <label>Games</label>
         <ul>
           {games.map((game) => (
             <li key={game.game_id}>
-              <button onClick={() => setSelectedGame(game.game_id)}>
+              <button onClick={() => setGame(game.game_id)}>
                 {game.game_id}
               </button>
             </li>
           ))}
         </ul>
-        {selectedGame && (
+        {game && (
           <div className="container">
-          <button onClick={() => setSelectedGame(null)}>Back to Game List</button>
-          <h1>Details for {games.find((game) => game.game_id === selectedGame)?.game_id}</h1>
+          <button onClick={() => setGame(null)}>Back to Game List</button>
+          <h1>Details for {games.find((game) => game.game_id === game)?.game_id}</h1>
           <div className="table-container">
             <div className="table">
               {usernames.map((username, index) => {
@@ -502,9 +487,9 @@ export default function App() {
                 <label>Key</label>
                 <input type="text" value={hostKey} onChange={(e) => setHostKey(e.target.value)}/>
                 <label>Date</label>
-                <input type="date" id="select-date" value={selectedDate} onChange={handleDateChange}/>
+                <input type="date" id="select-date" value={date} onChange={handleDateChange}/>
                 <label>Time</label>
-                <select onChange={(e) => setSelectedTime(e.target.value)} value={selectedTime}>
+                <select onChange={(e) => setTime(e.target.value)} value={time}>
                   {[...Array(24)].map((_, index) => (
                     <option key={index} value={index}>
                       {String(index).padStart(2, '0')}
@@ -516,8 +501,8 @@ export default function App() {
             </div>
           </div>
         )}
-        {selectedGame === null && renderGameList()}
-        {selectedGame !== null && renderGameDetails()}
+        {game === null && renderGameList()}
+        {game !== null && renderGameDetails()}
       </div>
     )
   }
