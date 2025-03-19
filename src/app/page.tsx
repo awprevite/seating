@@ -19,6 +19,7 @@ export default function App() {
   const[confirmPassword, setConfirmPassword] = useState<string>("");
   const[totalSeats, setTotalSeats] = useState<number>(2);
   const[hostKey, setHostKey] = useState<string>("");
+  const[gameName, setGameName] = useState<string>("");
   const[date, setDate] = useState<string>("");
   const[time, setTime] = useState<string>("");
   const[game, setGame] = useState<number | null>(null);
@@ -57,7 +58,7 @@ export default function App() {
           getHostGameInfo();
         }
       } else {
-        alert("Login failed"); // style a better notification
+        alert("Login failed.");
       }
     } catch (error) {
         alert("An unexpected error occurred. Please try again later.");
@@ -77,11 +78,11 @@ export default function App() {
       });
       const { statusCode, body } = response.data;
       if (statusCode === 200) {
-        alert("Account sreated successful! You can now log in.");
+        alert("Account created successful! You can now log in.");
         setLoginOpen(true);
         setCreateOpen(false);
       } else {
-        alert("Create Account failed");
+        alert("Create Account failed.");
       }
     } catch (error) {
         alert("An unexpected error occurred. Please try again later.");
@@ -91,19 +92,20 @@ export default function App() {
   const handleCreateGame = async () => {
     try {
       if(totalSeats === 0 || date === "" || time === ""){
-        alert("Fill out all fields before creating")
+        alert("Fill out all fields before creating.")
         return
       }
       const startTimeDate = date + " " + time + ":00:00";
       const response = await axios.post(urlCreateTable, {
         username: username,
         password: password,
+        game_name: gameName,
         host_key: hostKey,
         total_seats: totalSeats,
         start_time_date: startTimeDate
       });
       const { statusCode } = response.data;
-      alert(statusCode === 200 ? "Successfully Created Game and Seats!" : "Failed to create game and seats");
+      alert(statusCode === 200 ? "Successfully Created Game and Seats." : "Failed to create game and seats.");
       setCreateGameOpen(false);
     } catch (error) {
       alert("An unexpected error occurred. Please try again later.");
@@ -120,9 +122,9 @@ export default function App() {
       });
       const { statusCode, body } = response.data;
       if (statusCode === 200) {
-        alert("Joined");
+        alert("Joined.");
       } else {
-        alert("Could Not Join");
+        alert("Could Not Join.");
       }
     } catch (error) {
         alert("An unexpected error occurred. Please try again later.");
@@ -138,9 +140,9 @@ export default function App() {
       });
       const { statusCode, body } = response.data;
       if (statusCode === 200) {
-        alert("Deleted");
+        alert("Deleted.");
       } else {
-        alert("Could Not Delete");
+        alert("Could Not Delete.");
       }
     } catch (error) {
         alert("An unexpected error occurred. Please try again later.");
@@ -158,9 +160,9 @@ export default function App() {
       });
       const { statusCode, body } = response.data;
       if (statusCode === 200) {
-        alert("Left");
+        alert("Left.");
       } else {
-        alert("Could Not Leave");
+        alert("Could Not Leave.");
       }
     } catch (error) {
         alert("An unexpected error occurred. Please try again later.");
@@ -178,7 +180,7 @@ export default function App() {
       if (statusCode === 200) {
         setGames(body);
       } else {
-        alert("Failed to retrieve game information");
+        alert("Failed to retrieve game information.");
       }
     } catch (error) {
       alert("An unexpected error occurred. Please try again later.");
@@ -194,7 +196,7 @@ export default function App() {
       if(statusCode === 200){
         setGame(null);
       }
-      alert(statusCode === 200 ? "Deleted game" : "Failed to delete game");
+      alert(statusCode === 200 ? "Deleted game." : "Failed to delete game.");
     } catch (error) {
       alert("An unexpected error occurred. Please try again later.");
     } finally {
@@ -212,7 +214,7 @@ export default function App() {
       if (statusCode === 200) {
         setGames(body);
       } else {
-        alert("Failed to retrieve game information");
+        alert("Failed to retrieve game information.");
       }
     } catch (error) {
       alert("An unexpected error occurred. Please try again later.");
@@ -232,7 +234,7 @@ export default function App() {
         });
         console.log(usernames);
       } else {
-        alert("Failed to retrieve game information");
+        alert("Failed to retrieve game information.");
       }
     } catch (error) {
       alert("An unexpected error occurred. Please try again later.");
@@ -260,10 +262,10 @@ export default function App() {
   };
   const toggleCreate = () => {
     setCreateOpen(!createOpen);
-  }
+  };
   const toggleCreateGame = () => {
     setCreateGameOpen(!createGameOpen);
-  }
+  };
   const handleLogout = () => {
     setHomeOpen(true);
     setHostOpen(false);
@@ -293,9 +295,7 @@ export default function App() {
       <ul>
         {games.map((game) => (
           <li key={game.game_id}>
-            <button onClick={() => setGame(game.game_id)}>
-              {game.total_seats} seats
-            </button>
+            <button className="home-button" onClick={() => setGame(game.game_id)}>{game.game_name}</button>
           </li>
         ))}
       </ul>
@@ -308,8 +308,8 @@ export default function App() {
 
     return (
       <div>
-        <button onClick={() => setGame(null)}>Back to Game List</button>
-        <h1>Details for {foundGame.game_id}</h1>
+        <button className="home-button" onClick={() => setGame(null)}>Back to Game List</button>
+        <h1>Details for {foundGame.game_name}</h1>
         <p>Total Seats: {foundGame.total_seats}</p>
         <h2>Seats</h2>
         <ul>
@@ -319,7 +319,7 @@ export default function App() {
             </li>
           ))}
         </ul>
-        <button onClick={handleDeleteGame}>Delete Game</button>
+        <button className="home-button" onClick={handleDeleteGame}>Delete Game</button>
       </div>
     );
   };
@@ -351,7 +351,7 @@ export default function App() {
           </div>
         </div>
         <div className="info-container">
-          <p>This app is only for finding and managing in person poker games</p>
+          <p>This app is for finding and managing in person poker games</p>
         </div>
   
         {loginOpen && (
@@ -407,34 +407,36 @@ export default function App() {
   }
 
   const playerView = () => {
-
     return(
       <div>
-        <button onClick={handleDeleteAccount}>Delete Account</button>
-        <button onClick={handleLogout}>Log out</button>
-        <label>Enter Host Key:</label>
-        <input type="text" value={hostKey} onChange={handleKeyChange}></input>
-        <label>Filter by Date</label>
-        <div className="date-picker-container">
-          <label htmlFor="select-date">Select Date:</label>
-          <input type="date" id="select-date" value={date} onChange={handleDateChange}/>
+        <div className="horizontal-container">
+          <button className="home-button" onClick={handleDeleteAccount}>Delete Account</button>
+          <button className="home-button" onClick={handleLogout}>Log out</button>
         </div>
-        <button onClick={() => setDate("")}>Clear</button>
-        <button onClick={() => handleSearchGames()}>Search</button>
-        <label>Games</label>
-        <ul>
-          {games.map((game) => (
-            <li key={game.game_id}>
-              <button onClick={() => setGame(game.game_id)}>
-                {game.game_id}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className="vertical-container">
+          <label>Enter Host Key:</label>
+          <input type="text" value={hostKey} onChange={handleKeyChange}></input>
+          <div className="date-picker-container">
+            <label htmlFor="select-date">Select Date:</label>
+            <input type="date" id="select-date" value={date} onChange={handleDateChange}/>
+          </div>
+          <button className="home-button" onClick={() => setDate("")}>Clear</button>
+          <button className="home-button" onClick={() => handleSearchGames()}>Search</button>
+          <label>Available Games</label>
+          <ul>
+            {games.map((game) => (
+              <li key={game.game_id}>
+                <button onClick={() => setGame(game.game_id)}>
+                  {game.game_name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
         {game && (
           <div className="container">
-          <button onClick={() => setGame(null)}>Back to Game List</button>
-          <h1>Details for {games.find((game) => game.game_id === game)?.game_id}</h1>
+          <button className="home-button" onClick={() => setGame(null)}>Back to Game List</button>
+          <h1>Game Details</h1>
           <div className="table-container">
             <div className="table">
               {usernames.map((username, index) => {
@@ -452,8 +454,8 @@ export default function App() {
               })}
             </div>
           </div>
-          <button onClick={handleJoinGame}>Join Game</button>
-          <button onClick={handleLeaveGame}>Leave Game</button>
+          <button className="home-button" onClick={handleJoinGame}>Join Game</button>
+          <button className="home-button" onClick={handleLeaveGame}>Leave Game</button>
         </div>
       )}
       </div>
@@ -464,16 +466,16 @@ export default function App() {
   const hostView = () => {
     return (
       <div>
-        <div className="login-button-container">
-          <button onClick={handleLogout}>Log out</button>
-          <button onClick={toggleCreateGame}>Create Game</button>
-          <button onClick={handleDeleteAccount}>Delete Account</button>
+        <div className="horizontal-container">
+          <button className="home-button" onClick={handleLogout}>Log out</button>
+          <button className="home-button" onClick={toggleCreateGame}>Create Game</button>
+          <button className="home-button" onClick={handleDeleteAccount}>Delete Account</button>
         </div>
         {createGameOpen && (
           <div className="modal-overlay">
             <div className="login-modal">
               <div className="login-button-container">
-                <button onClick={toggleCreateGame}>Back</button>
+                <button className="close-button" onClick={toggleCreateGame}>Back</button>
               </div>
               <div className="login-input-container">
                 <label>Total Seats</label>
@@ -484,6 +486,8 @@ export default function App() {
                     </option>
                   ))}
                 </select>
+                <label>Game Name</label>
+                <input type="text" value={gameName} onChange={(e) => setGameName(e.target.value)}/>
                 <label>Key</label>
                 <input type="text" value={hostKey} onChange={(e) => setHostKey(e.target.value)}/>
                 <label>Date</label>
@@ -496,7 +500,7 @@ export default function App() {
                     </option>
                   ))}
                 </select>
-                <button onClick={handleCreateGame}>Create Game</button>
+                <button className="login-button" onClick={handleCreateGame}>Create Game</button>
               </div>
             </div>
           </div>
