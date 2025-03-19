@@ -22,7 +22,7 @@ AWS API Gateway was used for invoking the lambda functions and the specific call
 3. More capabilities for hosts and players. Some ideas are below.  
 
 Hosts:
-- Update accound information.  
+- Update account information.  
 - Remove players from games.  
 - View game statistsics.  
 
